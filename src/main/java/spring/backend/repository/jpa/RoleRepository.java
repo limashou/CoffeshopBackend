@@ -1,4 +1,4 @@
-package spring.backend.repository;
+package spring.backend.repository.jpa;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

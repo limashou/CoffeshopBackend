@@ -1,93 +1,91 @@
 package spring.backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import spring.backend.dto.*;
+import spring.backend.exception.AppRuntimeException;
+import spring.backend.exception.AppUsernameNotFoundException;
 import spring.backend.service.JwtService;
-import spring.backend.entity.RefreshToken;
 import spring.backend.service.RefreshTokenService;
 import spring.backend.service.UserService;
+import spring.backend.entity.RefreshToken;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@AllArgsConstructor
 public class UserController {
-    @Autowired
     AuthenticationManager authenticationManager;
-
-    @Autowired
     JwtService jwtService;
-
-    @Autowired
     RefreshTokenService refreshTokenService;
-    @Autowired
     UserService userService;
 
     @PostMapping(value = "/save")
-    public ResponseEntity<?> saveUser(@RequestBody UserRequest userRequest) {
-        try {
-            UserResponse userResponse = userService.saveUser(userRequest);
-            return ResponseEntity.ok(userResponse);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public ResponseEntity<String> saveUser(@RequestBody UserRequest userRequest) {
+        if(userRequest != null) {
+            userService.saveUser(userRequest);
+            return ResponseEntity.ok("User saved successfully");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Body is empty");
         }
     }
+
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            List<UserResponse> userResponses = userService.getAllUser();
-            return ResponseEntity.ok(userResponses);
-        } catch (Exception e){
-            throw new RuntimeException(e);
-        }
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUser());
     }
 
     @PostMapping("/profile")
     public ResponseEntity<UserResponse> getUserProfile() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.isAuthenticated()) {
-                UserResponse userResponse = userService.getUser();
-                return ResponseEntity.ok().body(userResponse);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        } catch (Exception e){
-            throw new RuntimeException(e);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            UserResponse userResponse = userService.getUser();
+            return ResponseEntity.ok().body(userResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/getAllInformation")
+    public ResponseEntity<UserRequest> getSendUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            UserRequest userRequest = userService.getAllInformationUser();
+            return ResponseEntity.ok().body(userRequest);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     @DeleteMapping("/deleteUser")
     public ResponseEntity<String> deleteUser(@RequestBody UserResponse userResponse) {
-        try {
-            if (userResponse.getId() != null) {
-                userService.deleteUserById(userResponse.getId());
-                return ResponseEntity.ok("User successfully deleted");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting user");
+        if (userResponse.getId() != null) {
+            userService.deleteUserById(userResponse.getId());
+            return ResponseEntity.ok("User successfully deleted");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
     }
+
     @PostMapping("/login")
     public JwtResponseDTO AuthenticateAndGetToken(@RequestBody AuthRequestDTO authRequestDTO){
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequestDTO.getUsername(), authRequestDTO.getPassword()));
+        Authentication authentication = authenticationManager.authenticate
+                (new UsernamePasswordAuthenticationToken(authRequestDTO.getUsername(), authRequestDTO.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         if(authentication.isAuthenticated()){
             return JwtResponseDTO.builder()
                     .accessToken(jwtService.GenerateToken(authRequestDTO.getUsername()))
                     .build();
         } else {
-            throw new UsernameNotFoundException("invalid user request..!!");
+            throw new AppUsernameNotFoundException("invalid user request..!!", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -101,6 +99,6 @@ public class UserController {
                     return JwtResponseDTO.builder()
                             .accessToken(accessToken)
                             .accessToken(refreshTokenRequestDTO.getToken()).build();
-                }).orElseThrow(() ->new RuntimeException("Refresh Token is not in DB..!!"));
+                }).orElseThrow(() ->new AppRuntimeException("Refresh Token is not in DB..!!",HttpStatus.NOT_FOUND));
     }
 }

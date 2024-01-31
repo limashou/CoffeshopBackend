@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class CustomUserDetails extends User implements UserDetails {
-
     private String username;
     private String password;
     Collection<? extends GrantedAuthority> authorities;

@@ -65,7 +65,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("api/login").permitAll()
                         .requestMatchers("api/save").permitAll()
+                        .requestMatchers("api/reset/**").permitAll()
                         .requestMatchers("api/users").permitAll()
+                        .requestMatchers("/api/coffeeshop/menu/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManagement -> sessionManagement
@@ -77,6 +79,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf((csrf) -> csrf.disable());
+//                .csrf((csrf) -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
         return http.build();
     }
 }

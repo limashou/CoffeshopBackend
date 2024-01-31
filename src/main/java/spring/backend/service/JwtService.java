@@ -1,12 +1,14 @@
 package spring.backend.service;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import spring.backend.entity.User;
+import spring.backend.repository.jpa.UserRepository;
 
 import java.security.Key;
 import java.util.Date;
@@ -16,6 +18,9 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
+    @Autowired
+    UserRepository userRepository;
+    private static final long EXPIRATION_TIME = 1000 * 60 * 15;
     public static final String SECRET = "357638792F423F4428472B4B6250655368566D597133743677397A2443264629";
 
     public String extractUsername(String token) {
@@ -30,7 +35,32 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+    public String generatePasswordResetToken(User user) {
+        Claims claims = Jwts.claims().setSubject(user.getEmail());
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiration)
+                .signWith(getSignKey(),SignatureAlgorithm.HS256).compact();
+    }
 
+    public boolean validatePasswordResetToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token);
+            return true;
+        } catch (SignatureException | ExpiredJwtException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
+            return false;
+        }
+    }
+    public void resetPassword(String token, String newPassword) {
+        String email = Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody().getSubject();
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        User user = userRepository.findByEmail(email);
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+    }
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()
@@ -55,12 +85,11 @@ public class JwtService {
     }
 
     private String createToken(Map<String, Object> claims, String username) {
-
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+ 10000 * 60))
+                .setExpiration(new Date(System.currentTimeMillis()+ 1000 * 60 * 60 * 6))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
 

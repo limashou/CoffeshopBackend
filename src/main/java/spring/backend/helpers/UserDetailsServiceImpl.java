@@ -8,19 +8,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import spring.backend.entity.User;
-import spring.backend.repository.UserRepository;
+import spring.backend.repository.jpa.UserRepository;
 
 @Component
 public class UserDetailsServiceImpl implements UserDetailsService {
-
     @Autowired
     private UserRepository userRepository;
-
+    private User user;
     private static final Logger logger = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
         logger.debug("Entering in loadUserByUsername Method...");
         User user = userRepository.findByUsername(username);
         if(user == null){

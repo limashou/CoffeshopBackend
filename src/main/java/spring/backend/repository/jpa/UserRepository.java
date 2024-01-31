@@ -1,4 +1,4 @@
-package spring.backend.repository;
+package spring.backend.repository.jpa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT DISTINCT oc FROM User oc JOIN FETCH oc.roles WHERE oc.username =:username")
     User findByUsername(String username);
+    @Query("SELECT DISTINCT oc FROM User oc JOIN FETCH oc.roles WHERE oc.email =:email")
+    User findByEmail(String email);
     @Query("SELECT DISTINCT oc FROM User oc JOIN FETCH oc.roles")
     List<User> findWithRole();
 

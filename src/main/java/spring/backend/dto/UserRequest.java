@@ -13,7 +13,6 @@ import java.util.Set;
 @NoArgsConstructor
 @ToString
 public class UserRequest {
-
     private Long id;
     private String username;
     private String password;
