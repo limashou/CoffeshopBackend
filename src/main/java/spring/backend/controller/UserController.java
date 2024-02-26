@@ -1,6 +1,7 @@
 package spring.backend.controller;
 
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,7 +9,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import spring.backend.dto.*;
+import spring.backend.dto.jwt.JwtResponseDTO;
+import spring.backend.dto.jwt.RefreshTokenRequestDTO;
+import spring.backend.dto.user.AuthRequestDTO;
+import spring.backend.dto.user.UserRequest;
+import spring.backend.dto.user.UserResponse;
 import spring.backend.exception.AppRuntimeException;
 import spring.backend.exception.AppUsernameNotFoundException;
 import spring.backend.service.JwtService;
@@ -26,6 +31,7 @@ public class UserController {
     JwtService jwtService;
     RefreshTokenService refreshTokenService;
     UserService userService;
+    ModelMapper modelMapper;
 
     @PostMapping(value = "/save")
     public ResponseEntity<String> saveUser(@RequestBody UserRequest userRequest) {
@@ -47,8 +53,7 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            UserResponse userResponse = userService.getUser();
-            return ResponseEntity.ok().body(userResponse);
+            return ResponseEntity.ok().body(modelMapper.map(userService.getUser(),UserResponse.class));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

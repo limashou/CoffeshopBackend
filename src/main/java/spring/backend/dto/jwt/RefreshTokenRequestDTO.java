@@ -1,4 +1,4 @@
-package spring.backend.dto;
+package spring.backend.dto.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

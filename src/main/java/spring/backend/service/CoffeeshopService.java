@@ -1,12 +1,12 @@
 package spring.backend.service;
 
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import spring.backend.dto.CoffeeshopDTO;
+import spring.backend.dto.info_and_coffeeshop.CoffeeshopDTO;
 import spring.backend.entity.Coffeeshop;
 import spring.backend.exception.AppRuntimeException;
 import spring.backend.repository.jpa.CoffeeshopRepository;
@@ -15,11 +15,12 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
-//@AllArgsConstructor
+@AllArgsConstructor
 public class CoffeeshopService {
-    @Autowired
+
     CoffeeshopRepository coffeeshopRepository;
-    ModelMapper modelMapper = new ModelMapper();
+    ModelMapper modelMapper;
+
     public Coffeeshop saveCoffeeshop(CoffeeshopDTO coffeeshopDTO) {
         if(coffeeshopDTO.getName() == null) {
             throw new AppRuntimeException("Parameter name is not found in request..!!", HttpStatus.NO_CONTENT);
@@ -42,8 +43,7 @@ public class CoffeeshopService {
     public List<CoffeeshopDTO> getAllList() {
         List<Coffeeshop> coffeeshops = coffeeshopRepository.findAll();
         Type setOfDTOsType = new TypeToken<List<CoffeeshopDTO>>(){}.getType();
-        List<CoffeeshopDTO> coffeeshopDTOS = modelMapper.map(coffeeshops, setOfDTOsType);
-        return coffeeshopDTOS;
+        return modelMapper.map(coffeeshops, setOfDTOsType);
     }
 
     public void deleteCoffeeShopById(Long id) {

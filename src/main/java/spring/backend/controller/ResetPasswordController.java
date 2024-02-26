@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import spring.backend.dto.PasswordResetDTO;
-import spring.backend.dto.PasswordResetRequestDTO;
+import spring.backend.dto.reset_password.PasswordResetDTO;
+import spring.backend.dto.reset_password.PasswordResetRequestDTO;
 import spring.backend.entity.User;
 import spring.backend.service.EmailService;
 import spring.backend.service.JwtService;
@@ -47,13 +47,4 @@ public class ResetPasswordController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token.");
         }
     }
-//    @PostMapping("/reset-password")
-//    public ResponseEntity<String> resetPassword(@RequestBody Map<String,String> reset) {
-//        if (jwtService.validatePasswordResetToken(reset.get("token"))) {
-//            jwtService.resetPassword(reset.get("token"), reset.get("newPassword"));
-//            return ResponseEntity.ok("Password reset successfully.");
-//        } else {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token.");
-//        }
-//    }
 }

@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface OfferRepository extends JpaRepository<SpecialOffer,Long> {
-    @Query("SELECT ob FROM SpecialOffer ob LEFT JOIN FETCH ob.itemsList m WHERE ob.coffeeshop.id = :id")
+    @Query("SELECT ob FROM SpecialOffer ob LEFT JOIN FETCH ob.items m WHERE ob.coffeeshop.id = :id")
     List<SpecialOffer> findAllByCoffeeshopId(Long id);
 }

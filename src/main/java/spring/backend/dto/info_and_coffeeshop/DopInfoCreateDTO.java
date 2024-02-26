@@ -1,16 +1,16 @@
-package spring.backend.dto;
+package spring.backend.dto.info_and_coffeeshop;
 
 import lombok.*;
+import spring.backend.entity.Coffeeshop;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DopInfoDTO {
+public class DopInfoCreateDTO {
     private Long id;
-    private Long shop_id;
+    private Coffeeshop coffeeshop;
     private String city;
     private String address;
-    private double rating;
 }

@@ -1,13 +1,13 @@
 package spring.backend.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import spring.backend.dto.MenuDTO;
-import spring.backend.dto.OfferRequest;
-import spring.backend.dto.OfferResponse;
+import spring.backend.dto.offer.OfferRequest;
+import spring.backend.dto.offer.OfferResponse;
 import spring.backend.entity.SpecialOffer;
 import spring.backend.service.MenuService;
 import spring.backend.service.OfferService;
@@ -16,10 +16,10 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/coffeeshop/menu")
+@AllArgsConstructor
 public class MenuController {
-    @Autowired
+
     MenuService menuService;
-    @Autowired
     OfferService offerService;
 
     @PostMapping("/save")
@@ -56,6 +56,7 @@ public class MenuController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Body is empty");
         }
     }
+
     @DeleteMapping("/deleteOffer/{id}")
     public ResponseEntity<String> deleteOffer(@PathVariable Long id) {
 
@@ -67,6 +68,7 @@ public class MenuController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @GetMapping("getAll/{id}")
     public ResponseEntity<List<OfferRequest>> getAll(@PathVariable Long id){
         return ResponseEntity.ok(offerService.getAllbyCoffeeshop(id));

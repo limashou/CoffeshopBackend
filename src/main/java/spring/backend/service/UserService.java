@@ -1,9 +1,9 @@
 package spring.backend.service;
 
+import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -11,8 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import spring.backend.dto.UserRequest;
-import spring.backend.dto.UserResponse;
+import spring.backend.dto.user.UserRequest;
+import spring.backend.dto.user.UserResponse;
 import spring.backend.entity.User;
 import spring.backend.exception.AppRuntimeException;
 import spring.backend.exception.AppUsernameNotFoundException;
@@ -23,15 +23,13 @@ import java.lang.reflect.Type;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class UserService {
-    @Autowired
+
     UserRepository userRepository;
-    @Autowired
     RoleRepository roleRepository;
-    ModelMapper modelMapper = new ModelMapper();
-    public User findById(Long id){
-        return userRepository.findById(id).orElseThrow(()-> new AppRuntimeException("User not found", HttpStatus.NOT_FOUND));
-    }
+    ModelMapper modelMapper;
+
     public User findByUsername(String username){
         return userRepository.findByUsername(username);
     }
@@ -59,6 +57,7 @@ public class UserService {
         }
         return userRepository.save(user);
     }
+
     public void deleteUserById(Long userId) {
         User user = userRepository.findByIdWithRole(userId);
         if (user != null) {
@@ -68,23 +67,20 @@ public class UserService {
         }
     }
 
-    public UserResponse getUser() {
+    public User getUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() ||
                 authentication instanceof AnonymousAuthenticationToken) {
             throw new AppRuntimeException("User is not authenticated", HttpStatus.UNAUTHORIZED);
         }
         Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            UserDetails userDetail = (UserDetails) principal;
-            String usernameFromAccessToken = userDetail.getUsername();
-            User user = userRepository.findByUsername(usernameFromAccessToken);
+        if (principal instanceof UserDetails userDetail) {
+            User user = userRepository.findByUsername(userDetail.getUsername());
             if (user != null) {
-                UserResponse userResponse = modelMapper.map(user, UserResponse.class);
-                return userResponse;
+                return user;
             } else {
                 throw new AppUsernameNotFoundException("User not found for username: " +
-                        usernameFromAccessToken, HttpStatus.NOT_FOUND);
+                        userDetail.getUsername(), HttpStatus.NOT_FOUND);
             }
         } else {
             throw new AppRuntimeException("Principal is not an instance of UserDetails", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -96,13 +92,11 @@ public class UserService {
             throw new AppRuntimeException("User is not authenticated", HttpStatus.UNAUTHORIZED);
         }
         Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            UserDetails userDetail = (UserDetails) principal;
+        if (principal instanceof UserDetails userDetail) {
             String usernameFromAccessToken = userDetail.getUsername();
             User user = userRepository.findByUsername(usernameFromAccessToken);
             if (user != null) {
-                UserRequest userRequest = modelMapper.map(user, UserRequest.class);
-                return userRequest;
+                return modelMapper.map(user, UserRequest.class);
             } else {
                 throw new AppUsernameNotFoundException("User not found for username: " + usernameFromAccessToken, HttpStatus.NOT_FOUND);
             }
@@ -114,10 +108,10 @@ public class UserService {
     public User findByEmail(String email){
         return userRepository.findByEmail(email);
     }
+
     public List<UserResponse> getAllUser() {
-        List<User> users = (List<User>) userRepository.findWithRole();
+        List<User> users = userRepository.findWithRole();
         Type setOfDTOsType = new TypeToken<List<UserResponse>>(){}.getType();
-        List<UserResponse> userResponses = modelMapper.map(users, setOfDTOsType);
-        return userResponses;
+        return modelMapper.map(users, setOfDTOsType);
     }
 }

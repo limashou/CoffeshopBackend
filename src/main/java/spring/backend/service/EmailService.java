@@ -2,7 +2,7 @@ package spring.backend.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,12 +11,9 @@ import java.io.IOException;
 
 
 @Service
+@AllArgsConstructor
 public class EmailService {
-    @Autowired
     private JavaMailSender mailSender;
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
     public void sendResetTokenByEmail(String userEmail, String resetUrl, String resetToken) throws IOException, MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(message);

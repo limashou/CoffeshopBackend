@@ -1,19 +1,14 @@
 package spring.backend.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Pageable;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import spring.backend.dto.DopInfoCreateDTO;
-import spring.backend.dto.DopInfoDTO;
-import spring.backend.dto.RecallDTO;
+import spring.backend.dto.info_and_coffeeshop.DopInfoCreateDTO;
+import spring.backend.dto.info_and_coffeeshop.DopInfoDTO;
+import spring.backend.dto.recall.RecallDTO;
 import spring.backend.entity.DopInfoCoffeeshop;
 import spring.backend.exception.AppRuntimeException;
 import spring.backend.repository.jpa.DopInfoRepository;
@@ -23,20 +18,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class DopInfoService {
-    @Autowired
     RecallService recallService;
-    @Autowired
     DopInfoRepository dopInfoRepository;
-    @Autowired
     CoffeeshopService coffeeshopService;
-    @Autowired
     UserService userService;
-    @Autowired
     DopInfoRepositoryPaging dopInfoRepositoryPaging;
+    ModelMapper modelMapper;
 
-    ModelMapper modelMapper = new ModelMapper();
-
+    public DopInfoCoffeeshop findByID(Long id) {
+        return dopInfoRepository.findById(id).orElseThrow(
+                ()-> new AppRuntimeException("DopInfo not found with id: " + id, HttpStatus.NOT_FOUND));
+    }
     public DopInfoCoffeeshop saveDopInfo(DopInfoCreateDTO dopInfoDTO) {
         if (dopInfoDTO.getCoffeeshop() == null) {
             throw new AppRuntimeException("Parameter coffeeshop_id is not found in request..!!", HttpStatus.NO_CONTENT);
@@ -56,25 +50,10 @@ public class DopInfoService {
         return dopInfoRepository.save(dopInfo);
     }
 
-//    public double getAverageRatingForCoffeeshop(Long dopInfo_id) {
-//        DopInfoCoffeeshop dopInfo = dopInfoRepository.findById(dopInfo_id)
-//                .orElseThrow(() -> new EntityNotFoundException("DopInfo not found with id: " + dopInfo_id));
-//        return dopInfo.getAverageRating();
-//    }
     public void recallCoffeeshop(Long coffeeshopId, RecallDTO recall) {
-        DopInfoCoffeeshop dopInfo = dopInfoRepository.findById(coffeeshopId)
-                .orElseThrow(() -> new EntityNotFoundException("DopInfo not found with id: " + coffeeshopId));
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() ||
-                authentication instanceof AnonymousAuthenticationToken) {
-            throw new AppRuntimeException("User is not authenticated", HttpStatus.UNAUTHORIZED);
-        } else {
-            Object principal = authentication.getPrincipal();
-            if (principal instanceof UserDetails) {
-                dopInfo.getRecallList().add(recallService.recallCoffeeShop(dopInfo,
-                        userService.findByUsername(((UserDetails) principal).getUsername()),recall));
-            }
-        }
+        DopInfoCoffeeshop dopInfo = dopInfoRepository.initializeRecallList(coffeeshopId);
+        dopInfo.getRecallList().add(recallService.recallCoffeeShop(dopInfo,
+                userService.getUser(), recall));
     }
 
     public void deleteDopInfoById(Long id) {

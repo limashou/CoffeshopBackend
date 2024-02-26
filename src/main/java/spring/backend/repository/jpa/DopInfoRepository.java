@@ -17,4 +17,7 @@ import java.util.concurrent.CompletableFuture;
 public interface DopInfoRepository extends JpaRepository<DopInfoCoffeeshop,Long> {
     List<DopInfoCoffeeshop> findByCoffeeshop(Coffeeshop coffeeshop);
     List<DopInfoCoffeeshop> findByCity(String city);
+    @Query("SELECT d FROM DopInfoCoffeeshop d LEFT JOIN FETCH d.recallList WHERE d.id = :id")
+    DopInfoCoffeeshop initializeRecallList(Long id);
+
 }

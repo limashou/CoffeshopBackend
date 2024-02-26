@@ -3,7 +3,6 @@ package spring.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -26,13 +25,6 @@ public class SpecialOffer {
     private Coffeeshop coffeeshop;
 
     @ToString.Exclude
-//    @OneToMany(fetch = FetchType.LAZY)
-//    @JoinTable(
-//            name = "offer_items",
-//            joinColumns = @JoinColumn(name = "offer_id"),
-//            inverseJoinColumns = @JoinColumn(name = "menu_id")
-//    )
-//    private List<Menu> itemsList;
     @ElementCollection
     @CollectionTable(
             name = "offer_items",
@@ -40,7 +32,7 @@ public class SpecialOffer {
     )
     @MapKeyJoinColumn(name = "items_id")
     @Column(name = "quanity")
-    private Map<Menu,Integer> itemsList;
+    private Map<Menu,Integer> items;
 
     private double price;
 }

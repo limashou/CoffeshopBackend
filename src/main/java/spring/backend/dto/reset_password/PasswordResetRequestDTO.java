@@ -1,4 +1,4 @@
-package spring.backend.dto;
+package spring.backend.dto.reset_password;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PasswordResetDTO {
+public class PasswordResetRequestDTO {
     private String token;
-    private String newPassword;
+    private String email;
 }

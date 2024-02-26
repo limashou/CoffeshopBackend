@@ -1,11 +1,9 @@
 package spring.backend.service;
 
-import org.modelmapper.ModelMapper;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import spring.backend.dto.DopInfoDTO;
 import spring.backend.dto.MenuDTO;
 import spring.backend.entity.Menu;
 import spring.backend.exception.AppRuntimeException;
@@ -13,21 +11,18 @@ import spring.backend.repository.jpa.MenuRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@AllArgsConstructor
 @Service
 public class MenuService {
-    @Autowired
     MenuRepository menuRepository;
-    @Autowired
     CoffeeshopService coffeeshopService;
-    ModelMapper modelMapper = new ModelMapper();
+
     public Menu saveMenu(MenuDTO menuDTO) {
         if(menuDTO.getCoffeshop_id() == null) {
             throw new AppRuntimeException("Parameter coffeeshop_id is not found in request..!!", HttpStatus.NO_CONTENT);
         }
         Menu menu = new Menu(menuDTO.getId(),menuDTO.getItems(),menuDTO.getPrice(),
                 coffeeshopService.getCoffeeShopById(menuDTO.getCoffeshop_id()),menuDTO.getType());
-
         if (menuDTO.getId() != null) {
             Menu oldMenu = menuRepository.findById(menuDTO.getId()).orElseThrow(() ->
                     new AppRuntimeException("Menu not found", HttpStatus.NOT_FOUND));

@@ -12,5 +12,4 @@ public class AppExpiredJwtException extends ExpiredJwtException {
         super(header, claims, message);
         this.status = status;
     }
-
 }
